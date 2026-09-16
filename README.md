@@ -22,4 +22,4 @@ Per the original paper's Data Availability Statement:
 Project Lead | **Vy T. Dang**  
 [LinkedIn](https://www.linkedin.com/in/vy-dang-t/) | [GitHub](https://github.com/veedeeve)  
 Team Member | **Chantera Lazard**  
-[LinkedIn](https://www.linkedin.com/in/chantera-lazard/) \| [GitHub](https://github.com/tera90223)  
+[LinkedIn](https://www.linkedin.com/in/chantera-lazard/) | [GitHub](https://github.com/tera90223)  
