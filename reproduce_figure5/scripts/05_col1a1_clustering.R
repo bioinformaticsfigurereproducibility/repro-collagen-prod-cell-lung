@@ -15,8 +15,9 @@ library(Seurat)
 library(glmGamPoi)
 library(ggplot2)
 library(patchwork)
+library(here)
 
-merged_all <- readRDS(file = "reproduce_figure5/data/merged_all_final_annotated.rds")
+merged_all <- readRDS(file = here("reproduce_figure5", "data", "merged_all_final_annotated.rds"))
 
 # ---- 1. Filter to only Lin-only Samples --------------------------------------
 lin_samples <- grep("_Lin$", unique(merged_all$orig.ident), value = TRUE)
@@ -43,14 +44,14 @@ merged_lin_col1a1 <- SCTransform(merged_lin_col1a1, vars.to.regress = "percent.m
 merged_lin_col1a1 <- RunPCA(merged_lin_col1a1)
 col1a1_elbow_plot <- ElbowPlot(merged_lin_col1a1, ndims = 50)
 ggsave(
-  filename = "reproduce_figure5/figures/col1a1_elbow_plot.png",
+  filename = here("reproduce_figure5", "figures", "col1a1_elbow_plot.png"),
   plot = col1a1_elbow_plot,
   height = 6,
   width = 8
 )
 
 # ---- 6. Checkpoint -----------------------------------------------------------
-saveRDS(merged_lin_col1a1, "reproduce_figure5/data/merged_lin_col1a1_sct.rds")
+saveRDS(merged_lin_col1a1, here("reproduce_figure5", "data", "merged_lin_col1a1_sct.rds"))
 
 # ---- 7. MNN Integration ------------------------------------------------------
 merged_lin_col1a1[["SCT"]] <- split(merged_lin_col1a1[["SCT"]], f = merged_lin_col1a1$orig.ident)
@@ -74,7 +75,7 @@ col1a1_dimplot_grouped_condition <- DimPlot(merged_lin_col1a1,
                                             reduction = "umap", 
                                             group.by = "condition") + ggtitle("COL1A1+ Cells")
 ggsave(
-  filename = "reproduce_figure5/figures/fig5c.png",
+  filename = here("reproduce_figure5", "figures", "fig5c.png"),
   plot = col1a1_dimplot_grouped_condition,
   height = 6,
   width = 8
@@ -82,7 +83,7 @@ ggsave(
 ## --- 9b. Figure 5d -----------------------------------------------------------
 col1a1_dimplot <- DimPlot(merged_lin_col1a1, reduction = "umap", label = TRUE)
 ggsave(
-  filename = "reproduce_figure5/figures/fig5d.png",
+  filename = here("reproduce_figure5", "figures", "fig5d.png"),
   plot = col1a1_dimplot,
   height = 6,
   width = 8
@@ -105,13 +106,13 @@ fig5g <- FeaturePlot(merged_lin_col1a1, features = genes_g, reduction = "umap",
   scale_color_gradientn(colors = c("lightgrey", "blue"), limits = c(0, global_max))
 
 ggsave(
-  filename = "reproduce_figure5/figures/fig5e.png", 
+  filename = here("reproduce_figure5", "figures", "fig5e.png"), 
   plot = fig5e, 
   width = 18, 
   height = 6)
 
 ggsave(
-  filename = "reproduce_figure5/figures/fig5g.png", 
+  filename = here("reproduce_figure5", "figures", "fig5g.png"), 
   plot = fig5g, 
   width = 9, 
   height = 3)
@@ -130,16 +131,17 @@ fig5f <- FeaturePlot(
 ) & NoAxes()
 
 ggsave(
-  filename = "reproduce_figure5/figures/fig5f.png", 
+  filename = here("reproduce_figure5", "figures", "fig5f.png"), 
   plot = fig5f, 
   width = 12, 
   height = 9)
 
-# ---- 10. In-Depth Analyzing Cluster 7 & 8 ------------------------------------
+# ---- 10. Checkpoint ----------------------------------------------------------
+saveRDS(merged_lin_col1a1, here("reproduce_figure5", "data", "merged_lin_col1a1_clustered.rds"))
+# ---- 11. In-Depth Analyzing Cluster 7 & 8 ------------------------------------
 merged_lin_col1a1_2 <- JoinLayers(merged_lin_col1a1, assay = "SCT")
 
 cluster8_markers <- FindMarkers(merged_lin_col1a1_2, ident.1 = "8", ident.2 = c("0", "5"))
 head(cluster8_markers[order(-cluster8_markers$avg_log2FC), ], 20)
 FeaturePlot(merged_lin_col1a1_2, features = c("WT1", "MSLN", "UPK3B"), reduction = "umap")
 DotPlot(merged_lin_col1a1_2, features = c("WT1", "MSLN", "UPK3B"), group.by = "seurat_clusters") + RotatedAxis()
-saveRDS(merged_lin_col1a1, "reproduce_figure5/data/merged_lin_col1a1_clustered.rds")

@@ -11,15 +11,26 @@ library(scater)
 library(scuttle)
 library(SingleCellExperiment)
 library(Seurat)
+library(here)
 
 # ---- 1. Load raw (unfiltered) counts per sample ------------------------------
 sample_dirs <- c(
-  NML1_All = "data/NML1_All", NML2_All = "data/NML2_All", NML3_All = "data/NML3_All",
-  NML1_Lin = "data/NML1_Lin", NML2_Lin = "data/NML2_Lin", NML3_Lin = "data/NML3_Lin",
-  IPF1_All = "data/IPF1_All", IPF2_All = "data/IPF2_All", IPF3_All = "data/IPF3_All",
-  IPF1_Lin = "data/IPF1_Lin", IPF2_Lin = "data/IPF2_Lin", IPF3_Lin = "data/IPF3_Lin",
-  SCD1_All = "data/SCD1_All", SCD2_All = "data/SCD2_All",
-  SCD1_Lin = "data/SCD1_Lin", SCD2_Lin = "data/SCD2_Lin"
+  NML1_All = here("reproduce_figure5", "data", "NML1_All"), 
+  NML2_All = here("reproduce_figure5", "data", "NML2_All"), 
+  NML3_All = here("reproduce_figure5", "data", "NML3_All"),
+  NML1_Lin = here("reproduce_figure5", "data", "NML1_Lin"), 
+  NML2_Lin = here("reproduce_figure5", "data", "NML2_Lin"), 
+  NML3_Lin = here("reproduce_figure5", "data", "NML3_Lin"),
+  IPF1_All = here("reproduce_figure5", "data", "IPF1_All"), 
+  IPF2_All = here("reproduce_figure5", "data", "IPF2_All"), 
+  IPF3_All = here("reproduce_figure5", "data", "IPF3_All"),
+  IPF1_Lin = here("reproduce_figure5", "data", "IPF1_Lin"), 
+  IPF2_Lin = here("reproduce_figure5", "data", "IPF2_Lin"), 
+  IPF3_Lin = here("reproduce_figure5", "data", "IPF3_Lin"),
+  SCD1_All = here("reproduce_figure5", "data", "SCD1_All"), 
+  SCD2_All = here("reproduce_figure5", "data", "SCD2_All"),
+  SCD1_Lin = here("reproduce_figure5", "data", "SCD1_Lin"),
+  SCD2_Lin = here("reproduce_figure5", "data", "SCD2_Lin")
 )
 
 counts_list <- lapply(sample_dirs, Read10X)
@@ -66,7 +77,5 @@ message("Cells flagged for removal: ", sum(discard),
 sce_filtered <- sce[, !discard] # removes cells that failed QC
 message("Cells after filtering: ", ncol(sce_filtered)) # 81,474 cells
 
-table(merged_all$condition)
-
 # ---- 7. Checkpoint -----------------------------------------------------------
-saveRDS(sce_filtered, file = "reproduce_figure5/data/filtered_sce_scran_qc.rds")
+saveRDS(sce_filtered, file = here("reproduce_figure5","data", "filtered_sce_scran_qc.rds"))

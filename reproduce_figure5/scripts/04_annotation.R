@@ -12,12 +12,13 @@ library(dplyr)
 library(Azimuth)
 library(patchwork)
 library(ggplot2)
+library(here)
 
 # Due to FastMNN requiring SCT assay split by sample to detect batches
 # merged_all was splitted and is a Assay5 which PrepSCTFindMarkers() fails
 # clean_SCT saved prior to SCTransform(), still SCT assay
-merged_all <- readRDS("reproduce_figure5/data/merged_all_integrated.rds")
-clean_SCT <- readRDS("reproduce_figure5/data/merged_all_sct.rds")
+merged_all <- readRDS(here("reproduce_figure5", "data", "merged_all_integrated.rds"))
+clean_SCT <- readRDS(here("reproduce_figure5", "data", "merged_all_sct.rds"))
 
 # ---- 1. Preprocessing --------------------------------------------------------
 # copies over mnn and umap reduction to the SCTAsaay
@@ -75,7 +76,7 @@ manual_annot_plot <- DimPlot(merged_all,
                              label = TRUE, 
                              repel = TRUE) + NoLegend()
 ggsave(
-  filename = "reproduce_figure5/figures/manual_annotation_plot.png",
+  filename = here("reproduce_figure5", "figures", "manual_annotation_plot.png"),
   plot = manual_annot_plot,
   width = 8,
   height = 6
@@ -100,7 +101,7 @@ auto_annot_plot <- DimPlot(merged_all,
                            label = TRUE, 
                            repel = TRUE) + NoLegend()
 ggsave(
-  filename = "reproduce_figure5/figures/auto_annotation_plot.png",
+  filename = here("reproduce_figure5", "figures", "auto_annotation_plot.png"),
   plot = auto_annot_plot,
   width = 8,
   height = 6
@@ -124,14 +125,14 @@ markers_to_check <- c(
 )
 cluster9_test_plot <- DotPlot(merged_all, features = markers_to_check) + RotatedAxis()
 ggsave(
-  filename = "reproduce_figure5/figures/cluster9_dotplot.png",
+  filename = here("reproduce_figure5", "figures", "cluster9_dotplot.png"),
   plot = cluster9_test_plot,
   height = 8,
   width = 6
 )
 cluster9_plp1_plot <- FeaturePlot(merged_all, features = "PLP1", reduction = "umap")
 ggsave(
-  filename = "reproduce_figure5/figures/cluster9_plp1.png",
+  filename = here("reproduce_figure5", "figures", "cluster9_plp1.png"),
   plot = cluster9_plp1_plot,
   height = 8,
   width = 6
@@ -166,7 +167,7 @@ annot_plot_condition <- DimPlot(merged_all, reduction = "umap", group.by = "cond
 
 final_annot_plot <- (annot_plot_celltype + annot_plot_condition) + plot_annotation(title = "Final Annotated Cluster")
 ggsave(
-  filename = "reproduce_figure5/figures/final_annotation_plot.png",
+  filename = here("reproduce_figure5", "figures", "final_annotation_plot.png"),
   plot = final_annot_plot,
   width = 8,
   height = 6
@@ -175,7 +176,7 @@ ggsave(
 ## ---- 8b. Focus on COL1A1 ----------------------------------------------------
 col1a1_plot <- FeaturePlot(merged_all, features = "COL1A1", reduction = "umap")
 ggsave(
-  filename = "reproduce_figure5/figures/col1a1_plot.png",
+  filename = here("reproduce_figure5", "figures", "col1a1_plot.png"),
   plot = col1a1_plot,
   width = 8,
   height = 6
@@ -187,7 +188,7 @@ col1a1_plot <- FeaturePlot(merged_all, features = "COL1A1", reduction = "umap",
                            order = TRUE, cols = c("lightgrey", "red"),
                            label = TRUE, repel = TRUE) & NoAxes()
 ggsave(
-  filename = "reproduce_figure5/figures/fig5b.png",
+  filename = here("reproduce_figure5", "figures", "fig5b.png"),
   plot = col1a1_plot,
   width = 8,
   height = 6
@@ -204,11 +205,11 @@ celltype_per_condition <- ggplot(prop_df, aes(x = condition, y = proportion, fil
   geom_bar(stat = "identity", position = "stack") +
   theme_minimal()
 ggsave(
-  filename = "reproduce_figure5/figures/celltype_per_condition.png",
+  filename = here("reproduce_figure5", "figures", "celltype_per_condition.png"),
   plot = celltype_per_condition,
   height = 6,
   width = 8
 )
 
 # ---- 9. Checkpoint -----------------------------------------------------------
-saveRDS(merged_all, file = "reproduce_figure5/data/merged_all_final_annotated.rds")
+saveRDS(merged_all, file = here("reproduce_figure5", "data", "merged_all_final_annotated.rds"))
