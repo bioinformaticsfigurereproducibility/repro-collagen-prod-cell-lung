@@ -16,20 +16,27 @@ library(glmGamPoi)
 library(ggplot2)
 library(patchwork)
 library(here)
+library(dplyr)
 
 merged_all <- readRDS(file = here("reproduce_figure5", "data", "merged_all_final_annotated.rds"))
+
+ncol(merged_all)
+table(merged_all$condition)
 
 # ---- 1. Filter to only Lin-only Samples --------------------------------------
 lin_samples <- grep("_Lin$", unique(merged_all$orig.ident), value = TRUE)
 merged_lin <- subset(merged_all, subset = orig.ident %in% lin_samples)
+ncol(merged_lin)
 
 # ---- 2. Join Layer to Subset Dataset ----------------------------------------
 merged_lin <- JoinLayers(merged_lin, assay = "RNA")
-DefaultAssay(merged_lin) <- "RNA"
+merged_lin <- JoinLayers(merged_lin, assay = "SCT")
 
+DefaultAssay(merged_lin) <- "RNA"
 # ---- 3. Subset to COL1A1 genes -----------------------------------------------
 merged_lin_col1a1 <- subset(merged_lin, subset = COL1A1 > 0)
 
+DefaultAssay(merged_lin) <- "SCT"
 # Paper stated 48,587 cells, after subsetting only 25,782 cells
 # Could be due to pipeline differences (all NML samples showed lower COL1A1 levels, consistent with biology)
 # COL1A1 encodes type 1 collagen which is found in fibrotic scar tissue, producing scar-forming collagen
@@ -140,8 +147,12 @@ ggsave(
 saveRDS(merged_lin_col1a1, here("reproduce_figure5", "data", "merged_lin_col1a1_clustered.rds"))
 # ---- 11. In-Depth Analyzing Cluster 7 & 8 ------------------------------------
 merged_lin_col1a1_2 <- JoinLayers(merged_lin_col1a1, assay = "SCT")
+Idents(merged_lin_col1a1_2) <- "seurat_clusters"
 
-cluster8_markers <- FindMarkers(merged_lin_col1a1_2, ident.1 = "8", ident.2 = c("0", "5"))
+DimPlot(merged_lin_col1a1_2, reduction = "umap", label = T) + ggtitle("COL1A1+ Cells")
+
+cluster8_markers <- FindMarkers(merged_lin_col1a1_2, ident.1 = "8", ident.2 = c("0", "2", "5"))
 head(cluster8_markers[order(-cluster8_markers$avg_log2FC), ], 20)
-FeaturePlot(merged_lin_col1a1_2, features = c("WT1", "MSLN", "UPK3B"), reduction = "umap")
-DotPlot(merged_lin_col1a1_2, features = c("WT1", "MSLN", "UPK3B"), group.by = "seurat_clusters") + RotatedAxis()
+
+cluster7_markers <- FindMarkers(merged_lin_col1a1_2, ident.1 = "7", ident.2 = c("0", "2", "5"))
+head(cluster7_markers[order(-cluster7_markers$avg_log2FC), ], 20)
