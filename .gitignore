@@ -1,7 +1,9 @@
 .Rproj.user
 .Rhistory
-.RData
+*.RData
 .Ruserdata
+
+**/.DS_Store
 
 # Data Files
 reproduce_figure5/data/*
