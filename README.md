@@ -1,4 +1,4 @@
-# Reproducing Figure 5: Identify Collagen-Producing Cells within Normal & Fibrotic Lungs
+# Reproducing Figure 1 and 5: Identify Collagen-Producing Cells within Normal & Fibrotic Lungs
 
 ## Source Publication
 
@@ -14,6 +14,8 @@ Per the original paper's Data Availability Statement:
 - **scRNA-seq data (mesenchymal subset):** deposited in GEO, accession [**GSE147066**](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE147066)
 
 ## Results
+
+### Figure 1
 
 ### Figure 5
 
