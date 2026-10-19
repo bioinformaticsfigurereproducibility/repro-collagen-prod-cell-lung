@@ -13,10 +13,13 @@ library(here)
 
 merged_all_sce <- readRDS(here("reproduce_figure5", "data", "filtered_sce_scran_qc.rds"))
 
-# ---- 1. Convert into Seurat Object -------------------------------------------
+# ---- 1. Set Seed -------------------------------------------------------------
+set.seed(42)
+
+# ---- 2. Convert into Seurat Object -------------------------------------------
 merged_all <- as.Seurat(merged_all_sce, counts = "counts", data = NULL)
 
-# ---- 2. Ensure Seurat Object has correct metadata ----------------------------
+# ---- 3. Ensure Seurat Object has correct metadata ----------------------------
 merged_all$orig.ident <- merged_all$sample
 Idents(merged_all) <- "orig.ident"
 table(merged_all$condition)
@@ -25,7 +28,7 @@ merged_all$percent.mt <- merged_all$subsets_Mito_percent
 Assays(merged_all)
 merged_all <- RenameAssays(merged_all, originalexp = "RNA")
 
-# ---- 3. Normalize, Scale and Find Variable Features through SCTransform() ----
+# ---- 4. Normalize, Scale and Find Variable Features through SCTransform() ----
 # To reduce computational capacity, run SCTransform per-sample split layers
 merged_all[["RNA"]] <- split(merged_all[["RNA"]], f = merged_all$orig.ident)
 merged_all <- SCTransform(merged_all, vars.to.regress = "percent.mt", vst.flavor = "v2")
@@ -40,10 +43,10 @@ ggsave(
   height = 6
 )
 
-# ---- 4. Checkpoint -----------------------------------------------------------
+# ---- 5. Checkpoint -----------------------------------------------------------
 saveRDS(merged_all, file = here("reproduce_figure5", "data", "merged_all_sct.rds"))
 
-# ---- 5. MNN Integration ------------------------------------------------------
+# ---- 6. MNN Integration ------------------------------------------------------
 # MNN Integration requires multiple batches
 merged_all[["SCT"]] <- split(merged_all[["SCT"]], f = merged_all$orig.ident)
 # Changes from SCTAssay to Assay5
@@ -60,12 +63,12 @@ merged_all <- IntegrateLayers(
 # Check for completion
 Reductions(merged_all)
 
-# ---- 6. Standardized Workflow ------------------------------------------------
+# ---- 7. Standardized Workflow ------------------------------------------------
 merged_all <- FindNeighbors(merged_all, reduction = "mnn", dims = 1:19)
 merged_all <- FindClusters(merged_all, resolution = 0.3, graph.name = "RNA_snn")
 merged_all <- RunUMAP(merged_all, reduction = "mnn", dims = 1:19)
 
-# ---- 7. Visualization --------------------------------------------------------
+# ---- 8. Visualization --------------------------------------------------------
 all_dim_plot <- DimPlot(merged_all, reduction = "umap", label = TRUE)
 ggsave(
   filename = here("reproduce_figure5", "figures", "all_dim_plot.png"),
@@ -88,5 +91,5 @@ ggsave(
   height = 6
 )
 
-# ---- 8. Checkpoint -----------------------------------------------------------
+# ---- 9. Checkpoint -----------------------------------------------------------
 saveRDS(merged_all, file = here("reproduce_figure5", "data", "merged_all_integrated.rds"))
