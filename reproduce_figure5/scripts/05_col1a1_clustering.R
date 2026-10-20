@@ -23,17 +23,21 @@ merged_all <- readRDS(file = here("reproduce_figure5", "data", "merged_all_final
 ncol(merged_all)
 table(merged_all$condition)
 
-# ---- 1. Filter to only Lin-only Samples --------------------------------------
+# ---- 1. Set Seed -------------------------------------------------------------
+set.seed(42)
+
+# ---- 2. Filter to only Lin-only Samples --------------------------------------
 lin_samples <- grep("_Lin$", unique(merged_all$orig.ident), value = TRUE)
 merged_lin <- subset(merged_all, subset = orig.ident %in% lin_samples)
 ncol(merged_lin)
 
-# ---- 2. Join Layer to Subset Dataset ----------------------------------------
+# ---- 3. Join Layer to Subset Dataset ----------------------------------------
 merged_lin <- JoinLayers(merged_lin, assay = "RNA")
 merged_lin <- JoinLayers(merged_lin, assay = "SCT")
 
 DefaultAssay(merged_lin) <- "RNA"
-# ---- 3. Subset to COL1A1 genes -----------------------------------------------
+
+# ---- 4. Subset to COL1A1 genes -----------------------------------------------
 merged_lin_col1a1 <- subset(merged_lin, subset = COL1A1 > 0)
 
 DefaultAssay(merged_lin) <- "SCT"
@@ -43,11 +47,11 @@ DefaultAssay(merged_lin) <- "SCT"
 ncol(merged_lin_col1a1)
 table(merged_lin_col1a1$orig.ident)
 
-# ---- 4. Re-conduct SCTranform focused on COL1A1 population -------------------
+# ---- 5. Re-conduct SCTranform focused on COL1A1 population -------------------
 merged_lin_col1a1[["RNA"]] <- split(merged_lin_col1a1[["RNA"]], f = merged_lin_col1a1$orig.ident)
 merged_lin_col1a1 <- SCTransform(merged_lin_col1a1, vars.to.regress = "percent.mt", vst.flavor = "v2")
 
-# --- 5. Pre-processing --------------------------------------------------------
+# ---- 6. Pre-processing -------------------------------------------------------
 merged_lin_col1a1 <- RunPCA(merged_lin_col1a1)
 col1a1_elbow_plot <- ElbowPlot(merged_lin_col1a1, ndims = 50)
 ggsave(
@@ -57,10 +61,10 @@ ggsave(
   width = 8
 )
 
-# ---- 6. Checkpoint -----------------------------------------------------------
+# ---- 7. Checkpoint -----------------------------------------------------------
 saveRDS(merged_lin_col1a1, here("reproduce_figure5", "data", "merged_lin_col1a1_sct.rds"))
 
-# ---- 7. MNN Integration ------------------------------------------------------
+# ---- 8. MNN Integration ------------------------------------------------------
 merged_lin_col1a1[["SCT"]] <- split(merged_lin_col1a1[["SCT"]], f = merged_lin_col1a1$orig.ident)
 
 merged_lin_col1a1 <- IntegrateLayers(
@@ -71,13 +75,13 @@ merged_lin_col1a1 <- IntegrateLayers(
   verbose = FALSE
 )
 
-# ---- 8. Standardized Workflow ------------------------------------------------
+# ---- 9. Standardized Workflow ------------------------------------------------
 merged_lin_col1a1 <- FindNeighbors(merged_lin_col1a1, reduction = "mnn", dims = 1:19)
 merged_lin_col1a1 <- FindClusters(merged_lin_col1a1, resolution = 0.3, graph.name = "RNA_snn")
 merged_lin_col1a1 <- RunUMAP(merged_lin_col1a1, reduction = "mnn", dims = 1:19)
 
-# ---- 9. Visualization --------------------------------------------------------
-## --- 9a. Figure 5c -----------------------------------------------------------
+# ---- 10. Visualization -------------------------------------------------------
+## --- 10a. Figure 5c ----------------------------------------------------------
 col1a1_dimplot_grouped_condition <- DimPlot(merged_lin_col1a1, 
                                             reduction = "umap", 
                                             group.by = "condition") + ggtitle("COL1A1+ Cells")
@@ -87,7 +91,7 @@ ggsave(
   height = 6,
   width = 8
 )
-## --- 9b. Figure 5d -----------------------------------------------------------
+## --- 10b. Figure 5d ----------------------------------------------------------
 col1a1_dimplot <- DimPlot(merged_lin_col1a1, reduction = "umap", label = TRUE)
 ggsave(
   filename = here("reproduce_figure5", "figures", "fig5d.png"),
@@ -96,7 +100,7 @@ ggsave(
   width = 8
 )
 
-## ---- 9c. Figure 5e & Figure 5f ----------------------------------------------------------
+## ---- 10c. Figure 5e & Figure 5f ---------------------------------------------
 genes_e <- c("PDGFRA", "MYH11", "RGS5", "NPNT", "PI16", "FGF18",
              "PDGFRB", "MYL9", "MCAM", "CES1", "DCN", "WIF1")
 genes_g <- c("TNC", "POSTN", "COL3A1")
@@ -124,7 +128,7 @@ ggsave(
   width = 9, 
   height = 3)
 
-## ---- 9e. Figure 5f ----------------------------------------------------------
+## ---- 10e. Figure 5f ---------------------------------------------------------
 # Same order of condition as the paper (NML, IPF, SCD)
 merged_lin_col1a1$condition <- factor(merged_lin_col1a1$condition, levels = c("NML", "IPF", "SCD"))
 fig5f <- FeaturePlot(
@@ -143,9 +147,10 @@ ggsave(
   width = 12, 
   height = 9)
 
-# ---- 10. Checkpoint ----------------------------------------------------------
+# ---- 11. Checkpoint ----------------------------------------------------------
 saveRDS(merged_lin_col1a1, here("reproduce_figure5", "data", "merged_lin_col1a1_clustered.rds"))
-# ---- 11. In-Depth Analyzing Cluster 7 & 8 ------------------------------------
+
+# ---- 12. In-Depth Analyzing Cluster 7 & 8 ------------------------------------
 merged_lin_col1a1_2 <- JoinLayers(merged_lin_col1a1, assay = "SCT")
 Idents(merged_lin_col1a1_2) <- "seurat_clusters"
 

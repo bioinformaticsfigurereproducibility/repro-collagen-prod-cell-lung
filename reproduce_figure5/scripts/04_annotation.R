@@ -5,7 +5,7 @@
 #   genes directly. Final Annotation reflects the review. 
 # ==============================================================================
 
-# ---- 0. Load Libraries and Checkpoints --------------------------------------
+# ---- 0. Load Libraries and Checkpoints ---------------------------------------
 library(Azimuth)
 library(Seurat)
 library(dplyr)
@@ -20,7 +20,10 @@ library(here)
 merged_all <- readRDS(here("reproduce_figure5", "data", "merged_all_integrated.rds"))
 clean_SCT <- readRDS(here("reproduce_figure5", "data", "merged_all_sct.rds"))
 
-# ---- 1. Preprocessing --------------------------------------------------------
+# ---- 1. Set Seed -------------------------------------------------------------
+set.seed(42)
+
+# ---- 2. Preprocessing --------------------------------------------------------
 # copies over mnn and umap reduction to the SCTAsaay
 clean_SCT[["mnn"]]  <- merged_all[["mnn"]]
 clean_SCT[["umap"]] <- merged_all[["umap"]]
@@ -30,7 +33,7 @@ Idents(clean_SCT) <- "seurat_clusters"
 
 class(clean_SCT[["SCT"]])   # confirm it's still "SCTAssay"
 
-# ---- 2. Find Markers ---------------------------------------------------------
+# ---- 3. Find Markers ---------------------------------------------------------
 # Corrects sequencing depth
 clean_SCT <- PrepSCTFindMarkers(clean_SCT)
 
@@ -49,7 +52,7 @@ top10_markers <- top_markers %>%
   slice_max(order_by = avg_log2FC, n = 10) %>%
   summarise(genes = paste(gene, collapse = ", "))
 
-# ---- 3. Manual Annotation via CellMarker 3.0 ---------------------------------
+# ---- 4. Manual Annotation via CellMarker 3.0 ---------------------------------
 # Using CellMarker 3.0
 manual_labels <- c(
   "0" = "Myofibroblast",
@@ -82,7 +85,7 @@ ggsave(
   height = 6
 )
 
-# ---- 4. Automatic Annotation via Azimuth -------------------------------------
+# ---- 5. Automatic Annotation via Azimuth -------------------------------------
 merged_all <- RunAzimuth(merged_all, reference = "lungref")
 
 # SingleR annotation levels goes from broad to specific annotations
@@ -107,7 +110,7 @@ ggsave(
   height = 6
 )
 
-# ---- 5. Compare Manual and Automatic Annotations -----------------------------
+# ---- 6. Compare Manual and Automatic Annotations -----------------------------
 
 lookup <- data.frame(
   cluster = names(auto_cluster_majority),
@@ -117,7 +120,7 @@ lookup <- data.frame(
 )
 lookup
 
-# ---- 5a. Test Cluster 9 ------------------------------------------------------
+## ---- 6a. Test Cluster 9 -----------------------------------------------------
 Idents(merged_all) <- "seurat_clusters"
 markers_to_check <- c(
   "ACTA2", "TAGLN", "COL1A1", "POSTN", "CTHRC1", # myofibroblast / fibrotic markers
@@ -137,7 +140,7 @@ ggsave(
   height = 8,
   width = 6
 )
-# ---- 6. Final Annotations ----------------------------------------------------
+# ---- 7. Final Annotations ----------------------------------------------------
 final_labels <- c(
   "0" = "Fibroblast",
   "1" = "Pericyte",
@@ -154,14 +157,14 @@ final_labels <- c(
   "12" = "B Cell",
   "13" = "Mesothelial")
 
-# ---- 7. Rename Cluster using Final Labels ------------------------------------
+# ---- 8. Rename Cluster using Final Labels ------------------------------------
 Idents(merged_all) <- "seurat_clusters"
 merged_all <- RenameIdents(merged_all, final_labels)
 merged_all$cell_type <- Idents(merged_all)
 
-# ---- 8. Visualizations -------------------------------------------------------
+# ---- 9. Visualizations -------------------------------------------------------
 
-## ---- 8a. By Cell Type and By Condition --------------------------------------
+## ---- 9a. By Cell Type and By Condition --------------------------------------
 annot_plot_celltype <- DimPlot(merged_all, reduction = "umap", group.by = "cell_type", label = TRUE, repel = TRUE) + NoLegend()
 annot_plot_condition <- DimPlot(merged_all, reduction = "umap", group.by = "condition", repel = TRUE)
 
@@ -173,7 +176,7 @@ ggsave(
   height = 6
 )
 
-## ---- 8b. Focus on COL1A1 ----------------------------------------------------
+## ---- 9b. Focus on COL1A1 ----------------------------------------------------
 col1a1_plot <- FeaturePlot(merged_all, features = "COL1A1", reduction = "umap")
 ggsave(
   filename = here("reproduce_figure5", "figures", "col1a1_plot.png"),
@@ -196,7 +199,7 @@ ggsave(
 # Number of cells per condition
 table(merged_all$condition)
 
-## ---- 8c. # of Cell Types within each Condition ------------------------------
+## ---- 9c. # of Cell Types within each Condition ------------------------------
 cell_props <- prop.table(table(merged_all$condition, merged_all$cell_type), margin = 1)
 prop_df <- as.data.frame(cell_props)
 colnames(prop_df) <- c("condition", "cell_type", "proportion")
@@ -211,5 +214,5 @@ ggsave(
   width = 8
 )
 
-# ---- 9. Checkpoint -----------------------------------------------------------
+# ---- 10. Checkpoint ----------------------------------------------------------
 saveRDS(merged_all, file = here("reproduce_figure5", "data", "merged_all_final_annotated.rds"))
